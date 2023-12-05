@@ -27,6 +27,7 @@ FILE_LICENCE ( GPL2_OR_LATER );
 #include <ipxe/efi/efi_snp.h>
 #include <ipxe/efi/efi_autoboot.h>
 #include <ipxe/efi/efi_watchdog.h>
+#include <ipxe/efi/efi_veto.h>
 
 /**
  * EFI entry point
@@ -39,6 +40,9 @@ EFI_STATUS EFIAPI _efi_start ( EFI_HANDLE image_handle,
 			       EFI_SYSTEM_TABLE *systab ) {
 	EFI_STATUS efirc;
 	int rc;
+
+	/* Initialise stack cookie */
+	efi_init_stack_guard ( image_handle );
 
 	/* Initialise EFI environment */
 	if ( ( efirc = efi_init ( image_handle, systab ) ) != 0 )
@@ -75,6 +79,10 @@ EFI_STATUS EFIAPI _efi_start ( EFI_HANDLE image_handle,
  */
 static int efi_probe ( struct root_device *rootdev __unused ) {
 
+	/* Remove any vetoed drivers */
+	efi_veto();
+
+	/* Connect our drivers */
 	return efi_driver_connect_all();
 }
 
@@ -85,6 +93,7 @@ static int efi_probe ( struct root_device *rootdev __unused ) {
  */
 static void efi_remove ( struct root_device *rootdev __unused ) {
 
+	/* Disconnect our drivers */
 	efi_driver_disconnect_all();
 }
 
