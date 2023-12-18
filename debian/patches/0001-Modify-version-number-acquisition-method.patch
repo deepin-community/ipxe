@@ -1,0 +1,46 @@
+From 4dfb3c99a4af3ccd84bdc3574115b6a041fc254c Mon Sep 17 00:00:00 2001
+From: bluesky <chenchongbiao@deepin.org>
+Date: Mon, 18 Dec 2023 18:29:48 +0800
+Subject: [PATCH] Modify version number acquisition method
+
+---
+ src/Makefile | 17 ++---------------
+ 1 file changed, 2 insertions(+), 15 deletions(-)
+
+diff --git a/src/Makefile b/src/Makefile
+index bc82cc6f..bb167256 100644
+--- a/src/Makefile
++++ b/src/Makefile
+@@ -209,27 +209,14 @@ install :
+ #
+ # Version number calculations
+ #
+-ifneq ($(wildcard ../.git),)
+-VERSIONS := $(shell git describe --tags --always --long --abbrev=1 --match "v*")
+-VERSION_TUPLE	:= $(subst ., ,$(subst -, ,$(patsubst v%,%,$(VERSIONS))))
+-VERSION_MAJOR	:= $(word 1,$(VERSION_TUPLE))
+-VERSION_MINOR	:= $(word 2,$(VERSION_TUPLE))
+-VERSION_PATCH	:= $(word 3,$(VERSION_TUPLE))
+-ifeq ($(word 4,$(VERSION_TUPLE)),0)
+-EXTRAVERSION	:=
+-else
+-EXTRAVERSION	:= +
+-endif
+-GITVERSION	= $(word 5,$(VERSION_TUPLE))
+-else
+ VERSION_MAJOR	= 1
+ VERSION_MINOR	= 0
+ VERSION_PATCH	= 0
+ EXTRAVERSION	= +
+-endif
+ MM_VERSION	= $(VERSION_MAJOR).$(VERSION_MINOR)
+ VERSION		= $(MM_VERSION).$(VERSION_PATCH)$(EXTRAVERSION)
+-ifneq ($(GITVERSION),)
++ifneq ($(wildcard ../.git),)
++GITVERSION := $(shell git describe --always --abbrev=1 --match "" 2>/dev/null)
+ VERSION		+= ($(GITVERSION))
+ endif
+ version :
+-- 
+2.33.1
+
