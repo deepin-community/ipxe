@@ -267,7 +267,7 @@ nv_init_rings ( struct forcedeth_private *priv )
 
 	/* Allocate ring for both TX and RX */
 	priv->rx_ring =
-		malloc_dma ( sizeof(struct ring_desc) * RXTX_RING_SIZE, 32 );
+		malloc_phys ( sizeof(struct ring_desc) * RXTX_RING_SIZE, 32 );
 	if ( ! priv->rx_ring )
 		goto err_malloc;
 	priv->tx_ring = &priv->rx_ring[RX_RING_SIZE];
@@ -308,7 +308,7 @@ nv_free_rxtx_resources ( struct forcedeth_private *priv )
 
 	DBGP ( "nv_free_rxtx_resources\n" );
 
-	free_dma ( priv->rx_ring, sizeof(struct ring_desc) * RXTX_RING_SIZE );
+	free_phys ( priv->rx_ring, sizeof(struct ring_desc) * RXTX_RING_SIZE );
 
 	for ( i = 0; i < RX_RING_SIZE; i++ ) {
 		free_iob ( priv->rx_iobuf[i] );
@@ -677,7 +677,7 @@ set_speed:
 static int
 forcedeth_open ( struct net_device *netdev )
 {
-	struct forcedeth_private *priv = netdev_priv ( netdev );
+	struct forcedeth_private *priv = netdev->priv;
 	void *ioaddr = priv->mmio_addr;
 	int i;
 	int rc;
@@ -794,7 +794,7 @@ err_init_rings:
 static int
 forcedeth_transmit ( struct net_device *netdev, struct io_buffer *iobuf )
 {
-	struct forcedeth_private *priv = netdev_priv ( netdev );
+	struct forcedeth_private *priv = netdev->priv;
 	void *ioaddr = priv->mmio_addr;
 	struct ring_desc *tx_curr_desc;
 	u32 size = iob_len ( iobuf );
@@ -853,7 +853,7 @@ forcedeth_transmit ( struct net_device *netdev, struct io_buffer *iobuf )
 static void
 nv_process_tx_packets ( struct net_device *netdev )
 {
-	struct forcedeth_private *priv = netdev_priv ( netdev );
+	struct forcedeth_private *priv = netdev->priv;
 	struct ring_desc *tx_curr_desc;
 	u32 flaglen;
 
@@ -899,7 +899,7 @@ nv_process_tx_packets ( struct net_device *netdev )
 static void
 nv_process_rx_packets ( struct net_device *netdev )
 {
-	struct forcedeth_private *priv = netdev_priv ( netdev );
+	struct forcedeth_private *priv = netdev->priv;
 	struct io_buffer *curr_iob;
 	struct ring_desc *rx_curr_desc;
 	u32 flags, len;
@@ -960,7 +960,7 @@ nv_process_rx_packets ( struct net_device *netdev )
 static void
 forcedeth_link_status ( struct net_device *netdev )
 {
-	struct forcedeth_private *priv = netdev_priv ( netdev );
+	struct forcedeth_private *priv = netdev->priv;
 	void *ioaddr = priv->mmio_addr;
 
 	/* Clear the MII link change status by reading the MIIStatus register */
@@ -981,7 +981,7 @@ forcedeth_link_status ( struct net_device *netdev )
 static void
 forcedeth_poll ( struct net_device *netdev )
 {
-	struct forcedeth_private *priv = netdev_priv ( netdev );
+	struct forcedeth_private *priv = netdev->priv;
 	void *ioaddr = priv->mmio_addr;
 	u32 status;
 
@@ -1018,7 +1018,7 @@ forcedeth_poll ( struct net_device *netdev )
 static void
 forcedeth_close ( struct net_device *netdev )
 {
-	struct forcedeth_private *priv = netdev_priv ( netdev );
+	struct forcedeth_private *priv = netdev->priv;
 
 	DBGP ( "forcedeth_close\n" );
 
@@ -1045,7 +1045,7 @@ forcedeth_close ( struct net_device *netdev )
 static void
 forcedeth_irq ( struct net_device *netdev, int action )
 {
-	struct forcedeth_private *priv = netdev_priv ( netdev );
+	struct forcedeth_private *priv = netdev->priv;
 
 	DBGP ( "forcedeth_irq\n" );
 
@@ -1762,7 +1762,7 @@ forcedeth_map_regs ( struct forcedeth_private *priv )
 	}
 
 	rc = -ENOMEM;
-	ioaddr = ioremap ( addr, register_size );
+	ioaddr = pci_ioremap ( priv->pci_dev, addr, register_size );
 	if ( ! ioaddr ) {
 		DBG ( "Cannot remap MMIO\n" );
 		goto err_ioremap;
@@ -1814,7 +1814,7 @@ forcedeth_probe ( struct pci_device *pdev )
 	netdev->dev = &pdev->dev;
 
 	/* Get a reference to our private data */
-	priv = netdev_priv ( netdev );
+	priv = netdev->priv;
 
 	/* We'll need these set up for the rest of the routines */
 	priv->pci_dev = pdev;

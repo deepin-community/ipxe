@@ -14,6 +14,7 @@ VERSION := $(shell dpkg-parsechangelog | sed -ne 's,^Version: *\(.*\)$$,\1,p')
 	+dh $@
 
 override_dh_auto_configure:
+	mkdir -p src/config/local
 	cp debian/config/* src/config/local
 
 src/bin-i386-pcbios/% src/bin-x86_64-efi/%:

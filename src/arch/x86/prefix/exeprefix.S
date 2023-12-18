@@ -36,6 +36,7 @@ FILE_LICENCE ( GPL2_OR_LATER_OR_UBDL )
 #define PSP_CMDLINE_LEN 0x80
 #define PSP_CMDLINE_START 0x81
 
+	.section ".note.GNU-stack", "", @progbits
 	.text
 	.arch i386
 	.org 0
@@ -110,7 +111,7 @@ overlay:
 	/* Overlay number */
 	.word	0
 
-	.align 16, 0
+	.balign 16, 0
 
 	.globl	_exe_start
 _exe_start:

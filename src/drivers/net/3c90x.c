@@ -249,7 +249,7 @@ static int a3c90x_setup_tx_ring(struct INF_3C90X *p)
 {
 	DBGP("a3c90x_setup_tx_ring\n");
 	p->tx_ring =
-	    malloc_dma(TX_RING_SIZE * sizeof(struct TXD), TX_RING_ALIGN);
+	    malloc_phys(TX_RING_SIZE * sizeof(struct TXD), TX_RING_ALIGN);
 
 	if (!p->tx_ring) {
 		DBG("Could not allocate TX-ring\n");
@@ -272,7 +272,7 @@ static int a3c90x_setup_tx_ring(struct INF_3C90X *p)
  */
 static void a3c90x_process_tx_packets(struct net_device *netdev)
 {
-	struct INF_3C90X *p = netdev_priv(netdev);
+	struct INF_3C90X *p = netdev->priv;
 	unsigned int downlist_ptr;
 
 	DBGP("a3c90x_process_tx_packets\n");
@@ -304,7 +304,7 @@ static void a3c90x_free_tx_ring(struct INF_3C90X *p)
 {
 	DBGP("a3c90x_free_tx_ring\n");
 
-	free_dma(p->tx_ring, TX_RING_SIZE * sizeof(struct TXD));
+	free_phys(p->tx_ring, TX_RING_SIZE * sizeof(struct TXD));
 	p->tx_ring = NULL;
 	/* io_buffers are free()ed by netdev_tx_complete[,_err]() */
 }
@@ -320,7 +320,7 @@ static void a3c90x_free_tx_ring(struct INF_3C90X *p)
 static int a3c90x_transmit(struct net_device *netdev,
 			   struct io_buffer *iob)
 {
-	struct INF_3C90X *inf_3c90x = netdev_priv(netdev);
+	struct INF_3C90X *inf_3c90x = netdev->priv;
 	struct TXD *tx_cur_desc;
 	struct TXD *tx_prev_desc;
 
@@ -461,7 +461,7 @@ static int a3c90x_setup_rx_ring(struct INF_3C90X *p)
 	DBGP("a3c90x_setup_rx_ring\n");
 
 	p->rx_ring =
-	    malloc_dma(RX_RING_SIZE * sizeof(struct RXD), RX_RING_ALIGN);
+	    malloc_phys(RX_RING_SIZE * sizeof(struct RXD), RX_RING_ALIGN);
 
 	if (!p->rx_ring) {
 		DBG("Could not allocate RX-ring\n");
@@ -491,7 +491,7 @@ static void a3c90x_free_rx_ring(struct INF_3C90X *p)
 {
 	DBGP("a3c90x_free_rx_ring\n");
 
-	free_dma(p->rx_ring, RX_RING_SIZE * sizeof(struct RXD));
+	free_phys(p->rx_ring, RX_RING_SIZE * sizeof(struct RXD));
 	p->rx_ring = NULL;
 }
 
@@ -518,7 +518,7 @@ static void a3c90x_process_rx_packets(struct net_device *netdev)
 {
 	int i;
 	unsigned int rx_status;
-	struct INF_3C90X *p = netdev_priv(netdev);
+	struct INF_3C90X *p = netdev->priv;
 	struct RXD *rx_cur_desc;
 
 	DBGP("a3c90x_process_rx_packets\n");
@@ -567,7 +567,7 @@ static void a3c90x_process_rx_packets(struct net_device *netdev)
  */
 static void a3c90x_poll(struct net_device *netdev)
 {
-	struct INF_3C90X *p = netdev_priv(netdev);
+	struct INF_3C90X *p = netdev->priv;
 	uint16_t raw_status, int_status;
 
 	DBGP("a3c90x_poll\n");
@@ -611,7 +611,7 @@ static void a3c90x_free_resources(struct INF_3C90X *p)
 static void a3c90x_remove(struct pci_device *pci)
 {
 	struct net_device *netdev = pci_get_drvdata(pci);
-	struct INF_3C90X *inf_3c90x = netdev_priv(netdev);
+	struct INF_3C90X *inf_3c90x = netdev->priv;
 
 	DBGP("a3c90x_remove\n");
 
@@ -628,7 +628,7 @@ static void a3c90x_remove(struct pci_device *pci)
 
 static void a3c90x_irq(struct net_device *netdev, int enable)
 {
-	struct INF_3C90X *p = netdev_priv(netdev);
+	struct INF_3C90X *p = netdev->priv;
 
 	DBGP("a3c90x_irq\n");
 
@@ -657,7 +657,7 @@ static void a3c90x_hw_start(struct net_device *netdev)
 	unsigned int cfg;
 	unsigned int mopt;
 	unsigned short linktype;
-	struct INF_3C90X *inf_3c90x = netdev_priv(netdev);
+	struct INF_3C90X *inf_3c90x = netdev->priv;
 
 	DBGP("a3c90x_hw_start\n");
 
@@ -796,7 +796,7 @@ static void a3c90x_hw_start(struct net_device *netdev)
 static int a3c90x_open(struct net_device *netdev)
 {
 	int rc;
-	struct INF_3C90X *inf_3c90x = netdev_priv(netdev);
+	struct INF_3C90X *inf_3c90x = netdev->priv;
 
 	DBGP("a3c90x_open\n");
 
@@ -845,7 +845,7 @@ static int a3c90x_open(struct net_device *netdev)
  */
 static void a3c90x_close(struct net_device *netdev)
 {
-	struct INF_3C90X *inf_3c90x = netdev_priv(netdev);
+	struct INF_3C90X *inf_3c90x = netdev->priv;
 
 	DBGP("a3c90x_close\n");
 
@@ -895,7 +895,7 @@ static int a3c90x_probe(struct pci_device *pci)
 	pci_set_drvdata(pci, netdev);
 	netdev->dev = &pci->dev;
 
-	inf_3c90x = netdev_priv(netdev);
+	inf_3c90x = netdev->priv;
 	memset(inf_3c90x, 0, sizeof(*inf_3c90x));
 
 	adjust_pci_device(pci);
